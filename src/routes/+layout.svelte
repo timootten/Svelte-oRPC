@@ -29,7 +29,7 @@
 	<div>
 		<h1>My App</h1>
 		<a href="/timer">Timer</a>
-		<a href="/live">Live2 Planets</a>
+		<a href="/live">Live1 Planets</a>
 		<a href="/live2">Live2 Planets</a>
 		<a href="/live3">Live3 Planets</a>
 	</div>

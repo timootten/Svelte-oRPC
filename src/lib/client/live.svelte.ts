@@ -1,17 +1,27 @@
+import { onMount } from "svelte";
+
 export function live<T, TReturn>(iterator: Promise<AsyncIteratorObject<T, TReturn, undefined>>) {
   let value = $state<T>();
 
-  // Start the iteration in the background
-  (async () => {
+  const startIteration = async () => {
     try {
       for await (const current of await iterator) {
         value = current;
-        console.log("Current value:", current);
       }
     } catch (error) {
       console.error('Error in live iterator:', error);
     }
-  })();
+  };
+
+  const stopIteration = async () => {
+    (await iterator).return?.();
+  };
+
+  // Start the iteration in the background
+  onMount(() => {
+    startIteration();
+    return () => stopIteration();
+  });
 
   return {
     get current(): T | undefined {
@@ -26,8 +36,7 @@ export function live<T, TReturn>(iterator: Promise<AsyncIteratorObject<T, TRetur
 export function liveArray<T, TReturn>(iterator: Promise<AsyncIteratorObject<T | T[], TReturn, undefined>>): { current: T[] } {
   let value = $state<T[]>([]);
 
-  // Start the iteration in the background
-  (async () => {
+  const startIteration = async () => {
     try {
       for await (const current of await iterator) {
         if (Array.isArray(current)) {
@@ -40,7 +49,17 @@ export function liveArray<T, TReturn>(iterator: Promise<AsyncIteratorObject<T | 
     } catch (error) {
       console.error('Error in live iterator:', error);
     }
-  })();
+  };
+
+  const stopIteration = async () => {
+    (await iterator).return?.();
+  };
+
+  // Start the iteration in the background
+  onMount(() => {
+    startIteration();
+    return () => stopIteration();
+  });
 
   return {
     get current(): T[] {
@@ -50,5 +69,4 @@ export function liveArray<T, TReturn>(iterator: Promise<AsyncIteratorObject<T | 
       value = newValue;
     }
   }
-
 }

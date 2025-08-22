@@ -4,8 +4,19 @@
 
 	let planets = $state<{ name: string }[]>([]);
 
-	onMount(async () => {
-		const liveIterator = await orpc.planet.live();
+	let liveIterator: AsyncIteratorObject<
+		| {
+				name: string;
+		  }
+		| {
+				name: string;
+		  }[],
+		unknown,
+		void
+	>;
+
+	const startIterator = async () => {
+		liveIterator = await orpc.planet.live();
 
 		for await (const data of liveIterator) {
 			if (Array.isArray(data)) {
@@ -14,6 +25,14 @@
 				planets = [...planets, data];
 			}
 		}
+	};
+
+	onMount(() => {
+		startIterator();
+
+		return () => {
+			liveIterator?.return?.();
+		};
 	});
 
 	const addPlanet = async (event: Event) => {

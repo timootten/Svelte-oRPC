@@ -2,7 +2,7 @@
 	import { orpc } from '$lib/client/orpc';
 	import { onMount } from 'svelte';
 
-	let planets: string[] = [];
+	let planets: { name: string }[] = [];
 
 	onMount(() => {
 		refresh();
