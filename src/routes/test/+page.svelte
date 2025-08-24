@@ -3,7 +3,7 @@
 	import Timer from '../../components/Timer.svelte';
 	import { live } from '../../lib/client/live.svelte';
 
-	let timer = live(orpc.timer.live());
+	let timer = live(orpc.timer.live(), 'timer');
 
 	const abc = 'sdsdsd';
 </script>
@@ -14,6 +14,10 @@
 {:else}
 	<p>Loading...</p>
 {/if}
+
+-------------------
+
+<Timer {abc} />
 
 -------------------
 

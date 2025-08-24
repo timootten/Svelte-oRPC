@@ -2,7 +2,7 @@ import type { RouterClient } from '@orpc/server'
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { router } from '$lib/server/router'
-import { DedupeRequestsPlugin } from './dedupe'
+import { DedupeRequestsPlugin } from '@orpc/client/plugins'
 
 const link = new RPCLink({
   url: 'http://localhost:5173/rpc',

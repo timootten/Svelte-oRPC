@@ -1,15 +1,40 @@
 import { onMount } from "svelte";
+import { SvelteMap } from "svelte/reactivity";
 
-export function live<T, TReturn>(iterator: Promise<AsyncIteratorObject<T, TReturn, undefined>>) {
-  let value = $state<T>();
+const liveCache = new SvelteMap<symbol | string, unknown>();
+
+export function liveCacheState<T>(key?: string, initialValue?: T) {
+  const stateKey = key ? key : Symbol();
+
+  // Initialize with the provided value if not already in cache
+  if (!liveCache.has(stateKey) && initialValue !== undefined) {
+    liveCache.set(stateKey, initialValue);
+  }
+
+  return {
+    get current(): T | undefined {
+      return liveCache.get(stateKey) as T | undefined;
+    },
+    set current(newValue: T | undefined) {
+      if (newValue === undefined) {
+        liveCache.delete(stateKey);
+      } else {
+        liveCache.set(stateKey, newValue);
+      }
+    },
+  }
+}
+
+export function live<T, TReturn>(iterator: Promise<AsyncIteratorObject<T, TReturn, undefined>>, key?: string) {
+  const value = liveCacheState<T>(key);
 
   const startIteration = async () => {
     try {
       for await (const current of await iterator) {
-        value = current;
+        value.current = current;
       }
-    } catch (error) {
-      console.error('Error in live iterator:', error);
+    } catch {
+      // Handle error
     }
   };
 
@@ -25,10 +50,10 @@ export function live<T, TReturn>(iterator: Promise<AsyncIteratorObject<T, TRetur
 
   return {
     get current(): T | undefined {
-      return value;
+      return value.current as T | undefined;
     },
     set current(newValue: T | undefined) {
-      value = newValue;
+      value.current = newValue;
     }
   }
 }
@@ -46,8 +71,8 @@ export function liveArray<T, TReturn>(iterator: Promise<AsyncIteratorObject<T | 
         }
         console.log("Current value:", current);
       }
-    } catch (error) {
-      console.error('Error in live iterator:', error);
+    } catch {
+      // Handle error
     }
   };
 
