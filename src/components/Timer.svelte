@@ -1,10 +1,13 @@
 <script lang="ts">
-	import { live, liveCacheState } from '$lib/client/live.svelte';
-	import { orpc } from '$lib/client/orpc';
+	import { live } from '$lib/client/live.svelte';
+	import { orpc, tOrpc, tsOrpc } from '$lib/client/orpc';
+	import { onMount } from 'svelte';
 
 	const { abc } = $props<{ abc: string }>();
 
-	const timer = live(orpc.timer.live(), 'timer');
+	//let timer = live(tOrpc.timer.live(), 'timer');
+
+	let timer = tOrpc.timer.live();
 </script>
 
 <h2>Live Timer</h2>

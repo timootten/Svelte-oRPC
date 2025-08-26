@@ -1,11 +1,13 @@
 <script lang="ts">
-	import { orpc } from '$lib/client/orpc';
+	import { orpc, tOrpc } from '$lib/client/orpc';
 	import Timer from '../../components/Timer.svelte';
 	import { live } from '../../lib/client/live.svelte';
 
-	let timer = live(orpc.timer.live(), 'timer');
+	let timer = tOrpc.timer.live();
 
 	const abc = 'sdsdsd';
+
+	console.log('aaaa', tOrpc.planet.create({ name: abc }));
 </script>
 
 <h2>Live Timer</h2>

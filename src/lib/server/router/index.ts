@@ -1,5 +1,5 @@
 import { createPlanet, listPlanets, livePlanets, livePlanets2 } from './planet'
-import { live } from './timer'
+import { live, value } from './timer'
 
 export const router = {
   planet: {
@@ -9,6 +9,7 @@ export const router = {
     create: createPlanet,
   },
   timer: {
+    value,
     live
   }
 }

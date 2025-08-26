@@ -1,32 +1,8 @@
 import { onMount } from "svelte";
-import { SvelteMap } from "svelte/reactivity";
-
-const liveCache = new SvelteMap<symbol | string, unknown>();
-
-export function liveCacheState<T>(key?: string, initialValue?: T) {
-  const stateKey = key ? key : Symbol();
-
-  // Initialize with the provided value if not already in cache
-  if (!liveCache.has(stateKey) && initialValue !== undefined) {
-    liveCache.set(stateKey, initialValue);
-  }
-
-  return {
-    get current(): T | undefined {
-      return liveCache.get(stateKey) as T | undefined;
-    },
-    set current(newValue: T | undefined) {
-      if (newValue === undefined) {
-        liveCache.delete(stateKey);
-      } else {
-        liveCache.set(stateKey, newValue);
-      }
-    },
-  }
-}
+import { liveCacheState } from "./cache";
 
 export function live<T, TReturn>(iterator: Promise<AsyncIteratorObject<T, TReturn, undefined>>, key?: string) {
-  const value = liveCacheState<T>(key);
+  const value = liveCacheState<T>("LIVE", key);
 
   const startIteration = async () => {
     try {
@@ -58,16 +34,16 @@ export function live<T, TReturn>(iterator: Promise<AsyncIteratorObject<T, TRetur
   }
 }
 
-export function liveArray<T, TReturn>(iterator: Promise<AsyncIteratorObject<T | T[], TReturn, undefined>>): { current: T[] } {
-  let value = $state<T[]>([]);
+export function liveArray<T, TReturn>(iterator: Promise<AsyncIteratorObject<T | T[], TReturn, undefined>>, key?: string): { current: T[] } {
+  const value = liveCacheState<T[]>("LIVE-ARRAY", key, []);
 
   const startIteration = async () => {
     try {
       for await (const current of await iterator) {
         if (Array.isArray(current)) {
-          value = current; // Replace entire array
+          value.current = current; // Replace entire array
         } else {
-          value = [...value, current]; // Append single item
+          value.current = [...value.current, current]; // Append single item
         }
         console.log("Current value:", current);
       }
@@ -88,10 +64,10 @@ export function liveArray<T, TReturn>(iterator: Promise<AsyncIteratorObject<T | 
 
   return {
     get current(): T[] {
-      return value;
+      return value.current
     },
     set current(newValue: T[]) {
-      value = newValue;
+      value.current = newValue;
     }
   }
 }

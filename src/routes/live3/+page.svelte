@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { liveArray } from '$lib/client/live.svelte';
-	import { orpc } from '$lib/client/orpc';
+	import { orpc, tOrpc } from '$lib/client/orpc';
 
-	let planets = liveArray(orpc.planet.live());
+	//let planets = liveArray(orpc.planet.live());
+	let planets = tOrpc.planet.live.asArray();
 
 	const addPlanet = async (event: Event) => {
 		event.preventDefault();

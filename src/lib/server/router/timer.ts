@@ -10,6 +10,7 @@ export const live = os
   })
   .output(eventIterator(z.string()))
   .handler(async function* () {
+    await new Promise(resolve => setTimeout(resolve, 500));
     try {
       while (true) {
         yield new Date().toLocaleString('de-DE');
@@ -18,4 +19,16 @@ export const live = os
     } finally {
       console.log('Cleanup logic here')
     }
+  })
+
+export const value = os
+  .route({
+    method: 'GET',
+    path: '/timer',
+    summary: 'On time timer',
+    tags: ['Timer'],
+  })
+  .output(z.string())
+  .handler(async function () {
+    return new Date().toLocaleString('de-DE');
   })
