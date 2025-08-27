@@ -1,21 +1,26 @@
 <script lang="ts">
-	import { orpc, iOrpc } from '$lib/client/orpc';
+	import { query } from '$lib/client/orpc';
+	import { onMount } from 'svelte';
 
-	//let planets = liveArray(orpc.planet.live());
-	let planets = iOrpc.planet.live.asArray();
+	let planets = $state<Awaited<ReturnType<typeof query.planet.list>>>([]);
+
+	onMount(async () => {
+		planets = await query.planet.list();
+	});
 
 	const addPlanet = async (event: Event) => {
 		event.preventDefault();
 		const formData = new FormData(event.target as HTMLFormElement);
 		const name = formData.get('planet')?.toString();
 		if (name) {
-			await orpc.planet.create({ name });
+			await query.planet.create({ name });
+			planets = await query.planet.list();
 		}
 	};
 </script>
 
-<h2>List of Planets3</h2>
-{#each planets.current as planet}
+<h2>List of Planets2</h2>
+{#each planets as planet}
 	<div>{planet.name}</div>
 {/each}
 

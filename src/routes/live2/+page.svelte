@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { orpc } from '$lib/client/orpc';
-	import { live } from '../../lib/client/live.svelte';
+	import { live } from '../../lib/client/live/live.svelte';
 
 	let planet = live(orpc.planet.live2());
 

@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { orpc, tOrpc } from '$lib/client/orpc';
+	import { orpc, iOrpc } from '$lib/client/orpc';
 	import { onMount } from 'svelte';
-	import { live } from '../../lib/client/live.svelte';
+	import { live } from '../../lib/client/live/live.svelte';
 
 	let timer = live(orpc.timer.live());
 
-	let time1;
+	let time1 = $state<string>();
 
 	onMount(async () => {
 		time1 = await orpc.timer.value();
 	});
 
-	let time2 = tOrpc.timer.value();
+	let time2 = iOrpc.timer.value();
 </script>
 
 {time1}

@@ -1,13 +1,11 @@
 <script lang="ts">
-	import { live } from '$lib/client/live.svelte';
-	import { orpc, tOrpc, tsOrpc } from '$lib/client/orpc';
-	import { onMount } from 'svelte';
+	import { iOrpc } from '$lib/client/orpc';
 
 	const { abc } = $props<{ abc: string }>();
 
 	//let timer = live(tOrpc.timer.live(), 'timer');
 
-	let timer = tOrpc.timer.live();
+	let timer = iOrpc.timer.live();
 </script>
 
 <h2>Live Timer</h2>

@@ -1,6 +1,7 @@
 import * as z from 'zod'
 import { eventIterator, EventPublisher, os } from '@orpc/server';
 
+
 const publisher = new EventPublisher<Record<string, { name: string }>>()
 
 const planets: { name: string }[] = [];
@@ -14,6 +15,8 @@ export const listPlanets = os
   })
   .output(z.array(z.object({ name: z.string() })))
   .handler(async () => {
+    console.log('Fetching planets...');
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return planets;
   })
 
