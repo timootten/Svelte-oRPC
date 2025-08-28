@@ -11,11 +11,14 @@
 		}
 	};
 
+	const { data } = $props();
+
 	const planets = createQuery({
 		queryKey: ['planets'],
 		queryFn: () => query.planet.list(),
-		initialData: [{ name: 'ABC' }],
-		staleTime: 5000
+		initialData: data.list,
+		staleTime: 5000,
+		gcTime: 0
 	});
 </script>
 

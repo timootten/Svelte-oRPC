@@ -14,7 +14,6 @@ export type GlobalState = {
 
 let globalState: GlobalState | undefined;
 
-
 let cleanupInterval: number | undefined;
 
 // Automatic cleanup every 2 minutes
@@ -35,13 +34,26 @@ const startCleanupTimer = () => {
   }, 2 * 60 * 1000); // Every 2 minutes
 };
 
+// Helper function to check if entry is expired without modifying cache
+const isEntryExpired = (entry: CacheEntry<unknown>): boolean => {
+  return entry.cacheTimeMs !== Infinity && Date.now() - entry.lastUpdated > entry.cacheTimeMs;
+};
+
 const getCacheEntry = <T>(cache: SvelteMap<string | symbol, CacheEntry<unknown>>, key: string | symbol): T | undefined => {
   const entry = cache.get(key) as CacheEntry<T> | undefined;
   if (!entry) return undefined;
 
-  // Check if expired
-  if (entry.cacheTimeMs !== Infinity && Date.now() - entry.lastUpdated > entry.cacheTimeMs) {
-    cache.delete(key);
+  // Check if expired but don't delete immediately during read access
+  if (isEntryExpired(entry)) {
+    // Schedule deletion for next tick to avoid state mutation during read
+    setTimeout(() => {
+      // Double-check entry still exists and is still expired
+      const currentEntry = cache.get(key);
+      if (currentEntry && isEntryExpired(currentEntry)) {
+        console.log("Cache entry expired:", key);
+        cache.delete(key);
+      }
+    }, 0);
     return undefined;
   }
 
@@ -60,9 +72,15 @@ const getCacheLastUpdated = (cache: SvelteMap<string | symbol, CacheEntry<unknow
   const entry = cache.get(key) as CacheEntry<unknown> | undefined;
   if (!entry) return undefined;
 
-  // Check if expired
-  if (entry.cacheTimeMs !== Infinity && Date.now() - entry.lastUpdated > entry.cacheTimeMs) {
-    cache.delete(key);
+  // Check if expired but don't delete immediately during read access
+  if (isEntryExpired(entry)) {
+    // Schedule deletion for next tick
+    setTimeout(() => {
+      const currentEntry = cache.get(key);
+      if (currentEntry && isEntryExpired(currentEntry)) {
+        cache.delete(key);
+      }
+    }, 0);
     return undefined;
   }
 

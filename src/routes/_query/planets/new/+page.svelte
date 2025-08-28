@@ -2,8 +2,11 @@
 	import { query } from '$lib/client/orpc';
 	import { useQuery } from '$lib/client/query/hooks.svelte';
 
+	const { data } = $props();
+
 	let planets = useQuery(query.planet.list(), {
-		cacheTimeMs: 1000
+		initialValue: data.list,
+		cacheTimeMs: 0
 	});
 
 	const addPlanet = async (event: Event) => {

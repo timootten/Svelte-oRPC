@@ -45,7 +45,6 @@ export function liveArray<T, TReturn>(iterator: Promise<AsyncIteratorObject<T | 
         } else {
           value.current = [...value.current, current]; // Append single item
         }
-        console.log("Current value:", current);
       }
     } catch {
       // Handle error

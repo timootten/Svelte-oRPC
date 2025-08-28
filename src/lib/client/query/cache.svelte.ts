@@ -58,7 +58,7 @@ export function CacheState<
 
   // Set initial value if provided
   if (initialValue !== undefined && getCacheEntry<T>(cache, stateKey) === undefined) {
-    setCacheEntry(cache, stateKey, initialValue, cacheTimeMs);
+    setCacheEntry(cache, stateKey, initialValue, cacheTimeMs + 1);
   }
 
   return {
@@ -67,7 +67,7 @@ export function CacheState<
     },
 
     set value(v: T) {
-      setCacheEntry(cache, stateKey, v, cacheTimeMs);
+      setCacheEntry(cache, stateKey, v, cacheTimeMs + 1);
     },
 
     get lastUpdated() {

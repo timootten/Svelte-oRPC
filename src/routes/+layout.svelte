@@ -5,9 +5,9 @@
 
 	let { children } = $props();
 
-	import { onMount } from 'svelte';
-	import { preloadData } from '$app/navigation';
+	import { beforeNavigate, goto, onNavigate, preloadData } from '$app/navigation';
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
+	import { onMount } from 'svelte';
 
 	type Route = {
 		path: string;
@@ -18,6 +18,20 @@
 	};
 
 	let routes: Route[] = $state([]);
+
+	beforeNavigate((nav) => {
+		if (nav.type !== 'goto') {
+			nav.cancel();
+			if (nav.to?.url.pathname) {
+				goto(nav.to?.url.pathname, {
+					replaceState: false,
+					noScroll: false,
+					invalidate: undefined,
+					invalidateAll: false
+				});
+			}
+		}
+	});
 
 	onMount(async () => {
 		const modules = import.meta.glob('/src/routes/**/+page.svelte', { eager: true });
@@ -156,7 +170,11 @@
 </svelte:head>
 
 <QueryClientProvider client={queryClient}>
-	<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+	<button onclick={() => goto('/tsquery/planets/new')}>test</button>
+	<div
+		class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100"
+		data-sveltekit-preload-data="false"
+	>
 		<!-- Navigation Header -->
 		<header class="border-b border-slate-200 bg-white shadow-sm">
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

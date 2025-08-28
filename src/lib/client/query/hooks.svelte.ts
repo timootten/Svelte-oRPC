@@ -32,22 +32,16 @@ export function useQuery<
     queryOptions
   );
 
-  let isLoading = $state(cache.value === undefined);
+  const isLoading = $derived(cache.value === undefined);
 
   onMount(async () => {
-    console.log(cache.value);
-    console.log(cache.lastUpdated);
     if (cache.value === undefined) {
       try {
         const result = await query;
         cache.value = result;
-        isLoading = false;
       } catch (error) {
         console.error('Query failed:', error);
-        isLoading = false;
       }
-    } else {
-      isLoading = false;
     }
   });
 
@@ -56,6 +50,7 @@ export function useQuery<
       return isLoading;
     },
     get value() {
+      console.log("Value: ", cache.value)
       return cache.value as T;
     },
     set value(v) {

@@ -5,8 +5,6 @@
 	let timer = iOrpc.timer.live();
 
 	const abc = 'sdsdsd';
-
-	console.log('aaaa', iOrpc.planet.create({ name: abc }));
 </script>
 
 <h2>Live Timer</h2>
