@@ -169,7 +169,6 @@
 </svelte:head>
 
 <QueryClientProvider client={queryClient}>
-	<button onclick={() => goto('/tsquery/planets/new')}>test</button>
 	<div
 		class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100"
 		data-sveltekit-preload-data="false"
