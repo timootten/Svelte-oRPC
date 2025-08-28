@@ -63,3 +63,12 @@ export function useQuery<
     }
   };
 }
+
+/*
+IDEE: entweder durch remove vom cache refetch ausführen oder refetch ausführen mit global EventEmitter für mutate und query
+und refetch methode adden
+
+key bei mutate und query ist unterschiedlich, überlegen was man da machen kann
+entweder manuell setzen, oder bei "planets.create" auch "planets.list" updaten also alles was in planets drin wäre?
+so wie in Svelte, mutation hat ein .updates(oprc.planets.list())
+*/

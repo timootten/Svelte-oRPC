@@ -6,7 +6,7 @@
 
 	let planets = useQuery(query.planet.list(), {
 		initialValue: data.list,
-		cacheTimeMs: 0
+		cacheTimeMs: 1000
 	});
 
 	const addPlanet = async (event: Event) => {

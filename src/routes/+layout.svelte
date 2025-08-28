@@ -19,19 +19,18 @@
 
 	let routes: Route[] = $state([]);
 
-	beforeNavigate((nav) => {
+	/*beforeNavigate((nav) => {
 		if (nav.type !== 'goto') {
 			nav.cancel();
 			if (nav.to?.url.pathname) {
 				goto(nav.to?.url.pathname, {
 					replaceState: false,
 					noScroll: false,
-					invalidate: undefined,
 					invalidateAll: false
 				});
 			}
 		}
-	});
+	});*/
 
 	onMount(async () => {
 		const modules = import.meta.glob('/src/routes/**/+page.svelte', { eager: true });
