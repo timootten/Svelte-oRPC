@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { query } from '$lib/client/orpc';
+	import { client } from '$lib/client/orpc';
 	import { onMount } from 'svelte';
 
-	let planets = $state<Awaited<ReturnType<typeof query.planet.list>>>([]);
+	let planets = $state<Awaited<ReturnType<typeof client.planet.list>>>([]);
 
 	onMount(async () => {
-		planets = await query.planet.list();
+		planets = await client.planet.list();
 	});
 
 	const addPlanet = async (event: Event) => {
@@ -13,8 +13,8 @@
 		const formData = new FormData(event.target as HTMLFormElement);
 		const name = formData.get('planet')?.toString();
 		if (name) {
-			await query.planet.create({ name });
-			planets = await query.planet.list();
+			await client.planet.create({ name });
+			planets = await client.planet.list();
 		}
 	};
 </script>

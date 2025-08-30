@@ -1,12 +1,15 @@
 <script lang="ts">
-	import { query } from '$lib/client/orpc';
+	import { client } from '$lib/client/orpc';
 	import { useQuery } from '$lib/client/query/hooks.svelte';
+	import { onMount } from 'svelte';
+	import { createPost, getPosts } from './posts.remote.js';
 
 	const { data } = $props();
 
-	let planets = useQuery(query.planet.list(), {
+	let planets = useQuery(client.planet.list(), {
 		initialValue: data.list,
-		cacheTimeMs: 1000
+		cacheTimeMs: 10000,
+		staleTimeMs: 5000
 	});
 
 	const addPlanet = async (event: Event) => {
@@ -14,7 +17,8 @@
 		const formData = new FormData(event.target as HTMLFormElement);
 		const name = formData.get('planet')?.toString();
 		if (name) {
-			await query.planet.create({ name });
+			await client.planet.create({ name });
+			await planets.refetch();
 		}
 	};
 </script>
@@ -26,6 +30,9 @@
 	{#each planets.value as planet}
 		<div>{planet.name}</div>
 	{/each}
+{/if}
+{#if planets.error}
+	<p>Error loading planets: {planets.error.message}</p>
 {/if}
 
 <form action="POST" onsubmit={addPlanet}>

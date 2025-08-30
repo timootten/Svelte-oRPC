@@ -1,15 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ClientContext, NestedClient } from "@orpc/client";
+import type { ClientContext, ClientPromiseResult, NestedClient } from "@orpc/client";
+import { LazyPromise } from "./lazyPromise";
 
-type WrappedClient<T> = T extends (...args: infer A) => Promise<AsyncIteratorObject<infer U, any, undefined>>
-  ? {
-    (...args: A): U & { key: string }
-  }
-  : T extends (...args: infer A) => infer R
-  ? (...args: A) => R & { key: string }
+type WrappedClient<T> =
+  // Funktionen ⇒ LazyPromise<entfalteter Rückgabewert>
+  T extends (...args: infer A) => any
+  ? (...args: A) => LazyPromise<Unwrap<ReturnType<T>>>
+  // Rekursiv für verschachtelte Objekte
   : T extends object
   ? { [K in keyof T]: WrappedClient<T[K]> }
-  : T;
+  : never;
+
+type Unwrap<T> =
+  T extends ClientPromiseResult<infer U, any> ? U :
+  T extends Promise<infer U> ? U :
+  T;
 
 function createWrapper<T>(client: T, path: string[] = []): WrappedClient<T> {
   return new Proxy(() => { }, {
@@ -32,33 +37,17 @@ function createWrapper<T>(client: T, path: string[] = []): WrappedClient<T> {
         throw new Error(`"${path.join('.')}" is not a function`);
       }
 
-      const result = new LazyPromise(() => current(...args), "planet.list");
+      type Result = Unwrap<ReturnType<typeof current>>;
 
-      return result
+      // LazyPromise<Result> statt LazyPromise<Promise<Result>>
+      const promise = new LazyPromise<Result>(
+        () => current(...args) as Promise<Result>,
+        path.join('.')
+      );
+
+      return promise
     }
   }) as WrappedClient<T>;
-}
-
-class LazyPromise<T> {
-  key: string;
-  private factory: () => Promise<T>;
-  private _promise?: Promise<T>;
-
-  constructor(factory: () => Promise<T>, key: string) {
-    this.factory = factory;
-    this.key = key;
-  }
-
-  private get promise(): Promise<T> {
-    if (!this._promise) {
-      this._promise = this.factory();
-    }
-    return this._promise;
-  }
-
-  then = (...args: any) => this.promise.then(...args);
-  catch = (...args: any) => this.promise.catch(...args);
-  finally = (...args: any) => this.promise.finally(...args);
 }
 
 

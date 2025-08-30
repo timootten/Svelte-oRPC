@@ -28,4 +28,4 @@ export const tsOrpc = createTanstackQueryUtils(orpc);
 
 export const iOrpc = testOrpc(orpc);
 
-export const query = createQuery(orpc);
+export const client = createQuery(orpc);

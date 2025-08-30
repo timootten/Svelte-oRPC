@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { query } from '$lib/client/orpc';
+	import { orpc } from '$lib/client/orpc';
 	import { createQuery } from '@tanstack/svelte-query';
 
 	const addPlanet = async (event: Event) => {
@@ -7,7 +7,7 @@
 		const formData = new FormData(event.target as HTMLFormElement);
 		const name = formData.get('planet')?.toString();
 		if (name) {
-			await query.planet.create({ name });
+			await orpc.planet.create({ name });
 		}
 	};
 
@@ -15,7 +15,7 @@
 
 	const planets = createQuery({
 		queryKey: ['planets'],
-		queryFn: () => query.planet.list(),
+		queryFn: () => orpc.planet.list(),
 		initialData: data.list,
 		staleTime: 5000,
 		gcTime: 0

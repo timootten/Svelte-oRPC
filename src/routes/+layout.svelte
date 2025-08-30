@@ -5,7 +5,7 @@
 
 	let { children } = $props();
 
-	import { beforeNavigate, goto, onNavigate, preloadData } from '$app/navigation';
+	import { beforeNavigate, goto, onNavigate, preloadData, pushState } from '$app/navigation';
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 	import { onMount } from 'svelte';
 
@@ -19,7 +19,7 @@
 
 	let routes: Route[] = $state([]);
 
-	/*beforeNavigate((nav) => {
+	beforeNavigate((nav) => {
 		if (nav.type !== 'goto') {
 			nav.cancel();
 			if (nav.to?.url.pathname) {
@@ -30,7 +30,7 @@
 				});
 			}
 		}
-	});*/
+	});
 
 	onMount(async () => {
 		const modules = import.meta.glob('/src/routes/**/+page.svelte', { eager: true });
@@ -315,6 +315,10 @@
 									<h3 class="mb-2 text-lg font-semibold text-slate-900">Error Loading Content</h3>
 									<p class="text-slate-600">{(error as any).message}</p>
 								</div>
+							{/snippet}
+
+							{#snippet pending()}
+								<h1>Loading...</h1>
 							{/snippet}
 
 							<div class="p-6">

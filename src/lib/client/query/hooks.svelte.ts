@@ -1,22 +1,31 @@
 import { onMount } from "svelte";
-import { CacheState, CacheType, type CacheOptions } from "./cache.svelte";
+import { CacheState, CacheType, getCacheManager, type CacheOptions, type StateKey } from "./cache.svelte";
+import type { LazyPromise } from "./lazyPromise";
 
-export type QueryInput<T> = Promise<T> & { key: string };
+export type QueryKey = StateKey;
+export type QueryInput<T> = LazyPromise<T>;
 
 export type QueryOptions<T> = CacheOptions<T> & {
-  overrideKey?: string;
-}
+  overrideKey?: QueryKey;
+  retry?: number;
+  retryDelay?: number;
+};
 
 export type QueryResult<T, QO extends QueryOptions<T> | undefined = undefined> = ({
   get isLoading(): true;
   get value(): QO extends { initialValue: T } ? T : T | undefined;
   set value(v: QO extends { initialValue: T } ? T : T | undefined);
+  get error(): Error | undefined;
+  get isStale(): boolean;
 } | {
   get isLoading(): false;
   get value(): T;
   set value(v: T);
+  get error(): Error | undefined;
+  get isStale(): boolean;
 }) & {
   onLoading(callback: () => void): void;
+  refetch(): Promise<void>;
 };
 
 export function useQuery<
@@ -26,23 +35,70 @@ export function useQuery<
   query: QueryInput<T>,
   queryOptions?: O
 ): QueryResult<T, O> {
-  const cache = CacheState<T, O>(
-    CacheType.QUERY,
-    queryOptions?.overrideKey ? queryOptions.overrideKey : query.key,
-    queryOptions
-  );
+  const key = queryOptions?.overrideKey ?? query.key;
+  const { retry = 0, retryDelay = 1000 } = queryOptions ?? {};
 
-  const isLoading = $derived(cache.value === undefined);
+  const cache = CacheState<T, O>(CacheType.QUERY, key, queryOptions);
+  const cacheManager = getCacheManager();
 
-  onMount(async () => {
-    if (cache.value === undefined) {
-      try {
-        const result = await query;
-        cache.value = result;
-      } catch (error) {
-        console.error('Query failed:', error);
+  let error = $state<Error | undefined>();
+  let isExecuting = $state(false);
+
+  const isLoading = $derived(cache.value === undefined && !error);
+
+  const executeQuery = async (retryCount = 0): Promise<void> => {
+    isExecuting = true;
+    try {
+      const result = await query.run();
+      cache.value = result;
+      error = undefined;
+    } catch (err) {
+      const queryError = err instanceof Error ? err : new Error(String(err));
+
+      if (retryCount < retry) {
+        setTimeout(() => {
+          executeQuery(retryCount + 1);
+        }, retryDelay);
+      } else {
+        error = queryError;
+        console.error('Query failed after retries:', queryError);
       }
+    } finally {
+      isExecuting = false;
     }
+  };
+
+  const shouldFetch = (): boolean => {
+    // Wenn keine Daten da sind, immer fetchen
+    if (cache.value === undefined) return true;
+
+    // Wenn Daten da sind aber stale, auch fetchen
+    if (cache.isStale) return true;
+
+    // Sonst nicht fetchen
+    return false;
+  };
+
+  const tryQuery = async () => {
+    if (shouldFetch() && !isExecuting) {
+      await executeQuery();
+    }
+  };
+
+  const refetch = async () => {
+    error = undefined;
+    await executeQuery();
+  };
+
+  onMount(() => {
+    cacheManager.addActiveQuery(key);
+
+    // Nur fetchen wenn nötig (keine Daten oder stale)
+    tryQuery();
+
+    return () => {
+      cacheManager.removeActiveQuery(key);
+    };
   });
 
   return {
@@ -50,25 +106,23 @@ export function useQuery<
       return isLoading;
     },
     get value() {
-      console.log("Value: ", cache.value)
       return cache.value as T;
     },
     set value(v) {
       cache.value = v;
+      error = undefined;
+    },
+    get error() {
+      return error;
+    },
+    get isStale() {
+      return cache.isStale;
     },
     onLoading(callback) {
-      if (cache.value === undefined) {
+      if (isLoading) {
         callback();
       }
-    }
+    },
+    refetch
   };
 }
-
-/*
-IDEE: entweder durch remove vom cache refetch ausführen oder refetch ausführen mit global EventEmitter für mutate und query
-und refetch methode adden
-
-key bei mutate und query ist unterschiedlich, überlegen was man da machen kann
-entweder manuell setzen, oder bei "planets.create" auch "planets.list" updaten also alles was in planets drin wäre?
-so wie in Svelte, mutation hat ein .updates(oprc.planets.list())
-*/
